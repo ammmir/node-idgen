@@ -1,5 +1,3 @@
-
-
 def set_options(opt):
   opt.tool_options("compiler_cxx")
 

@@ -1,3 +1,0 @@
-A port of Twitter's Snowflake ID generation scheme to node.js.
-
-See https://github.com/twitter/snowflake for more details.

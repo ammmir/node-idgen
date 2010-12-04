@@ -128,18 +128,20 @@ public:
       m_counter++;
 
       unsigned long id = ((timestamp - m_epoch) << timestampLeftShift) | (m_datacenter_id << datacenterIdShift) | (m_worker_id << workerIdShift) | sequence;
-      std::cout << "new id: " << id << "\n";
       return id;
   }
 
   static Handle<Value> New(const Arguments& args)
   {
     HandleScope scope;
+    char buf[32];
+    unsigned long l_epoch, l_worker_id, l_datacenter_id;
 
     if(args.Length() != 3)
       return ThrowException(Exception::TypeError(
             String::New("IdWorker(epoch, workerId, datacenterId) constructor expected")));
 
+    // FIXME: this is lame, need to figure out how to accept Number args
     if(!args[0]->IsString() || !args[1]->IsString() || !args[2]->IsString())
       return ThrowException(Exception::TypeError(
             String::New("IdWorker constructor needs String arguments")));
@@ -147,9 +149,6 @@ public:
     Local<String> epoch = Local<String>::Cast(args[0]);
     Local<String> workerId = Local<String>::Cast(args[0]);
     Local<String> datacenterId = Local<String>::Cast(args[0]);
-
-    char buf[32];
-    unsigned long l_epoch, l_worker_id, l_datacenter_id;
 
     epoch->WriteAscii(&buf[0], 0, 31);
     l_epoch = atol(buf);
@@ -192,23 +191,15 @@ public:
     IdWorker* hw = ObjectWrap::Unwrap<IdWorker>(args.This());
     hw->m_count++;
 
-    //Local<String> result = String::New("Hello World");
-    //Local<Number> result = Number::New(hw->m_epoch);
-    //Local<Number> result = Number::New( Date::New(now)->NumberValue() );
-    //Local<Number> result = Number::New( hw->nextId() );
-
     unsigned long id = hw->nextId();
-
-    //Local<Number> result = Number::New(id);
-    //Handle<Object> result = Persistent<String>::New( String::Cast( Number::New(id) ) );
-    //Local<String> result = Local<String>::Cast( Number::New(id) );
-
     char buf[65];
     ltoa(id, &buf[0], 10);
 
-//    Handle<String> result = Persistent<String>::New( String::New(buf) );
+    // TODO FIXME: memory leak below
+    Handle<String> result = Persistent<String>::New( String::New(buf) );
 
-    Local<String> result = Local<String>::Cast( Number::New(id) );
+    // this yields the same id when called repeatedly. stuck on the stack?
+    //Local<String> result = Local<String>::Cast( Number::New(id) );
     return scope.Close(result);
   }
 
